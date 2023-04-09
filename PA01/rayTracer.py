@@ -132,7 +132,6 @@ def main():
     viewHeight = 1.0
     projDistance = 1.0
     intensity = np.array([1, 1, 1]).astype(np.float64)  # how bright the light is.
-    print(np.cross(viewDir, viewUp))
 
     # Create an empty image
     imgSize = np.array(root.findtext('image').split()).astype(np.int32)
