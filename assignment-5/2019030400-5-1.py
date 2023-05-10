@@ -65,9 +65,9 @@ def key_callback(window, key, scancode, action, mods):
 
     if action == glfw.PRESS or action == glfw.REPEAT:
         if key == glfw.KEY_1:
-            gCamAng += np.radians(-10)
-        elif key == glfw.KEY_3:
             gCamAng += np.radians(10)
+        elif key == glfw.KEY_3:
+            gCamAng += np.radians(-10)
         elif key == glfw.KEY_2:
             gCamHeight += .1
         elif key == glfw.KEY_W:
