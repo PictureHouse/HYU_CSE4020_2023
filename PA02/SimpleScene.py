@@ -272,10 +272,10 @@ def display():
         t = animTime % 6
         spline = initialPosition
         
-        if animTime < 18:
+        if animTime < 18.0 and t >= 0 and t < 6.0:
+            animTime = float(animTime) - int(animTime)
             for i in range(6):
                 if i <= t and t < i + 1:
-                    t %= 1
                     spline = catmullRomSpline(t, positions[(5 + i) % 6], positions[i % 6], positions[(i + 1) % 6], positions[(i + 2) % 6])
                     rollingPosition[0:3, 0:3] = cowDirection(t, positions[(5 + i) % 6], positions[i % 6], positions[(i + 1) % 6], positions[(i + 2) % 6])
                     break
