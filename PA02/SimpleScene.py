@@ -50,6 +50,7 @@ class PickInfo:
 
 def vector3(x,y,z):
     return np.array((x,y,z))
+
 def position3(v):
     # divide by w
     w=v[3]
@@ -60,11 +61,13 @@ def vector4(x,y,z):
 
 def rotate(m,v):
     return m[0:3, 0:3]@v
+
 def transform(m, v):
     return position3(m@np.append(v,1))
 
 def getTranslation(m):
     return m[0:3,3]
+
 def setTranslation(m,v):
     m[0:3,3]=v
 
@@ -196,6 +199,7 @@ def drawCow(_cow2wld, drawBB):
         glVertex3d( cow.bbmax[0], cow.bbmax[1], cow.bbmax[2]);
         glEnd();
     glPopMatrix();			# Pop the matrix in stack to GL. Change it the matrix before drawing cow.
+
 def drawFloor():
 
     glDisable(GL_LIGHTING);
@@ -221,12 +225,11 @@ def drawFloor():
     glDisable(GL_TEXTURE_2D);	
     drawFrame(5);				# Draw x, y, and z axis.
 
-def catmullRomSpline(t, p0, p1, p2, p3):
-    return 0.5 * ((2.0 * p1) + (-p0 + p2) * t + (2.0 * p0 - 5.0 * p1 + 4.0 * p2 - p3) * t**2 + (-p0 + 3.0 * p1 - 3.0 * p2 + p3) * t**3)
+def bSpline(t, p0, p1, p2, p3):
+    return (1/6) * ((-t**3 + 3*t**2 - 3*t + 1) * p0 + (3*t**3 - 6*t**2 + 4) * p1 + (-3*t**3 + 3*t**2 + 3*t + 1) * p2 + t**3 * p3)
 
 def cowDirection(t, p0, p1, p2, p3):
-    global rollingPosition
-    direction = 0.5 * ((p2 - p0) + (2.0 * p0 - 5.0 * p1 + 4.0 * p2 - p3) * 2.0 * t + (-p0 + 3.0 * p1 - 3.0 * p2 + p3) * 3.0 * t**2)
+    direction = (1/6) * ((-3*t**2 + 6*t - 3) * p0 + (9*t**2 - 12*t) * p1 + (-9*t**2 + 6*t + 3) * p2 + 3*t**2 * p3)
     direction = normalize(getTranslation(direction))
 
     pitch = math.atan2(direction[1], np.sqrt(direction[0]**2 + direction[2]**2))
@@ -241,7 +244,7 @@ def cowDirection(t, p0, p1, p2, p3):
     Rz = np.array([[np.cos(roll), -np.sin(roll), 0.], 
                    [np.sin(roll), np.cos(roll), 0.], 
                    [0., 0., 1.]])
-    rollingPosition[0:3, 0:3] = (Rz @ Ry @ Rx).T
+    rollingPosition[0:3, 0:3] =  (Rz @ Ry @ Rx).T
 
 def display():
     global cameraIndex, cow2wld, count, positions, initialPosition, rollingPosition, initialTime, animStartTime, isDrag, isNotInitialClick
@@ -273,11 +276,11 @@ def display():
         spline = initialPosition
         
         if animTime < 18.0 and t >= 0 and t < 6.0:
-            animTime = float(animTime) - int(animTime)
             for i in range(6):
                 if i <= t and t < i + 1:
-                    spline = catmullRomSpline(t, positions[(5 + i) % 6], positions[i % 6], positions[(i + 1) % 6], positions[(i + 2) % 6])
-                    rollingPosition[0:3, 0:3] = cowDirection(t, positions[(5 + i) % 6], positions[i % 6], positions[(i + 1) % 6], positions[(i + 2) % 6])
+                    t %= 1
+                    spline = bSpline(t, positions[(5 + i) % 6], positions[i % 6], positions[(i + 1) % 6], positions[(i + 2) % 6])
+                    cowDirection(t, positions[(5 + i) % 6], positions[i % 6], positions[(i + 1) % 6], positions[(i + 2) % 6])
                     break
         else:
             count = 0
@@ -401,8 +404,6 @@ def onMouseButton(window,button, state, mods):
 
 def onMouseDrag(window, x, y):
     global isDrag,cursorOnCowBoundingBox, pickInfo, cow2wld
-    #if count == 6:
-    #    return
     if isDrag: 
         print( "in drag mode %d\n"% isDrag);
         if  isDrag==V_DRAG:
